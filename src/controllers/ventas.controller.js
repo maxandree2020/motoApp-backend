@@ -1,15 +1,7 @@
 import {pool} from '../db.js'
 import {format} from 'date-fns'
 
-/*export const getVentas = async(req,res)=> {
-    try{
-        const sql =  "select*from ventas "
-        const [rows] = await pool.query(sql)
-        res.json(rows)
-    }catch(error){
-        return res.status(500).json(error)
-    }
-}*/
+
 export const getVentas = async(req,res)=> {
     try{
         const sql =  `SELECT

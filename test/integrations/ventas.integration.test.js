@@ -74,7 +74,6 @@ describe('Integración: Ventas', () => {
       });
 
     expect(res.status).toBe(200);
-    // expect(res.body[0].precio).toBe(nuevoPrecio);
       expect(Number.parseFloat(res.body[0].precio)).toBe(nuevoPrecio);
 
     expect(

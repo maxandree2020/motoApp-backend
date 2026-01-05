@@ -100,7 +100,7 @@ export const getFacturaAlquiler = async (req, res) => {
 
         res.json(rows[0]);
     } catch (error) {
-        //return res.status(500).json({ message: "Something went wrong" });
+        
         if (error.code === 'ECONNREFUSED') {
         return res.status(503).json({ message: "Servicio de base de datos no disponible" });
     }
