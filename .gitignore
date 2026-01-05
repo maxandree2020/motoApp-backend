@@ -1,6 +1,15 @@
+# Node
 node_modules/
+
+# Environment variables
 .env
-coverage/
-uploads/
-dist/
+
+# Uploads (imagenes subidas)
+src/uploads/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+
+# OS
 .DS_Store

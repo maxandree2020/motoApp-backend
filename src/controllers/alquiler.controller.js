@@ -27,7 +27,7 @@ export const addAlquiler = async (req,res)=> {
     try {
         const sql = "INSERT INTO alquileres (moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total)VALUES (?, ?, ?, ?, ?)"
         const {moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total} = req.body
-        const [rows] = await pool.query(sql,[moto_id, cliente_id,format(fecha_inicio,'yyyy-MM-dd HH:mm:ss'),format(fecha_fin,'yyyy-MM-dd HH:mm:ss'), precio_total])
+         await pool.query(sql,[moto_id, cliente_id,format(fecha_inicio,'yyyy-MM-dd HH:mm:ss'),format(fecha_fin,'yyyy-MM-dd HH:mm:ss'), precio_total])
         res.status(201).json({moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total})
     
     
@@ -100,6 +100,11 @@ export const getFacturaAlquiler = async (req, res) => {
 
         res.json(rows[0]);
     } catch (error) {
-        return res.status(500).json({ message: "Something went wrong" });
+        //return res.status(500).json({ message: "Something went wrong" });
+        if (error.code === 'ECONNREFUSED') {
+        return res.status(503).json({ message: "Servicio de base de datos no disponible" });
+    }
+    return res.status(500).json({ message: "Error interno del servidor" });
+    
     }
 };

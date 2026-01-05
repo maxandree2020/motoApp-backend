@@ -24,7 +24,7 @@ export const addCliente = async (req,res)=> {
     try {
         const sql = "INSERT INTO clientes (dni, nombre, email, cel, dir)VALUES (?, ?, ?, ?, ?)"
         const {dni, nombre, email, cel, dir} = req.body
-        const [rows] = await pool.query(sql,[dni, nombre, email, cel, dir])
+        await pool.query(sql,[dni, nombre, email, cel, dir])
         res.status(201).json({dni, nombre, email, cel, dir})
     } catch (error) {
        return res.status(500).json(error)

@@ -16,11 +16,18 @@ export const verifyToken = (req, res, next) => {
 
   try {
     // Verificar token
-    const decoded = jwt.verify(token, 'clave_secreta'); // usar la misma clave que en login
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // usar la misma clave que en login
     req.user = decoded; // podemos usar req.user en los controllers
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Token expirado o inválido' });
+
+console.error("JWT Verification Error:", error.message);
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expirado', code: 'TOKEN_EXPIRED' });
+    }
+    return res.status(401).json({ message: 'Token inválido o malformado' });
+  
   }
 };
 

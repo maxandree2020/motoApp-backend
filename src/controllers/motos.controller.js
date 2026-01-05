@@ -20,17 +20,7 @@ export const getMoto = async(req,res)=> {
         return res.status(500).json(error)
     }
 }
-/*
-export const addMoto = async (req,res)=> {
-    try {
-        const sql = "INSERT INTO motos (nombre, descrip, tipo, precio, disponible) VALUES(?,?,?,?,?)"
-        const {nombre,descrip,tipo,precio,disponible} = req.body
-        const [rows] = await pool.query(sql,[nombre,descrip,tipo,precio,disponible])
-        res.status(201).json({nombre,descrip,tipo,precio,disponible})
-    } catch (error) {
-       return res.status(500).json(error)
-    }
-}*/
+
 export const addMoto = async (req, res) => {
   try {
     const sql =

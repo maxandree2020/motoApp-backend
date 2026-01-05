@@ -1,50 +1,3 @@
-// import { describe, it, expect, vi } from 'vitest'
-// import request from 'supertest'
-
-// // mock auth
-// vi.mock('../../src/middlewares/authMiddleware.js', () => ({
-//   verifyToken: (req, res, next) => next()
-// }))
-
-// import app from '../../src/app.js'
-
-// describe('Integración: Ventas', () => {
-
-//   it('GET /ventas/all → lista ventas', async () => {
-//     const res = await request(app).get('/ventas/all')
-
-//     expect(res.status).toBe(200)
-//     expect(Array.isArray(res.body)).toBe(true)
-//   })
-
-//   it('POST /ventas/add → valida reglas de negocio', async () => {
-//     const venta = {
-//       moto_id: 99999,      // ❌ moto inexistente (controlado)
-//       cliente_id: 1
-//     }
-
-//     const res = await request(app)
-//       .post('/ventas/add')
-//       .send(venta)
-
-//     // ✔ comportamiento esperado según tu controller
-//     expect([201, 404, 409]).toContain(res.status)
-
-//     if (res.status === 201) {
-//       expect(res.body.ventaId).toBeDefined()
-//     }
-
-//     if (res.status === 404) {
-//       expect(res.body.message).toContain('Moto')
-//     }
-
-//     if (res.status === 409) {
-//       expect(res.body.message).toContain('vendida')
-//     }
-//   })
-
-// })
-
 
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
@@ -122,7 +75,7 @@ describe('Integración: Ventas', () => {
 
     expect(res.status).toBe(200);
     // expect(res.body[0].precio).toBe(nuevoPrecio);
-      expect(parseFloat(res.body[0].precio)).toBe(nuevoPrecio);
+      expect(Number.parseFloat(res.body[0].precio)).toBe(nuevoPrecio);
 
     expect(
       format(new Date(res.body[0].fecha_venta), "yyyy-MM-dd HH:mm:ss")

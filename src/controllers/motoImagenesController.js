@@ -1,7 +1,7 @@
 import { pool } from '../db.js';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 
 // 📌 Configuración de Multer para guardar imágenes
 const storage = multer.diskStorage({

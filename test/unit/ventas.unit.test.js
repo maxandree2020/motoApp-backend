@@ -1,7 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// 🔥 mock db.js (TODO dentro del factory)
 vi.mock('../../src/db.js', () => {
   const query = vi.fn();
   const getConnection = vi.fn();
@@ -18,7 +17,6 @@ vi.mock('../../src/db.js', () => {
 import {
   getVentas,
   getVenta,
-  addVenta,
   updateVenta,
   deleteVenta,
   getMotosDisponibles
@@ -52,7 +50,7 @@ describe('Controller: Ventas (Unitarias)', () => {
   });
 
   it('getVentas → error 500', async () => {
-    pool.query.mockRejectedValue(new Error());
+    pool.query.mockRejectedValue(new Error("Database connection failed"));
 
     const res = mockRes();
     await getVentas({}, res);

@@ -14,6 +14,18 @@ export const verifyToken = (req, res, next) => {
     req.clienteId = decoded.clienteId;
     next();
   } catch (err) {
-    return res.status(401).json({ error: "Token inválido" });
+
+
+  // 1. Manejo: Registramos el error para observabilidad en el servidor
+    console.error("Error en validación de token:", err.message);
+
+    // 2. Opcional: Diferenciar si el token expiró o es inválido
+    if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: "El token ha expirado" });
+    }
+
+    return res.status(401).json({ error: "Token inválido o malformado" });
+  
+  
   }
 };

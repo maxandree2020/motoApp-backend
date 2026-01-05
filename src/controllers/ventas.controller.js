@@ -34,32 +34,7 @@ ORDER BY
     }
 }
 
-/*
-export const getVenta = async(req,res)=> {
-    try{
-        const sql =  "select*from ventas where id=?"
-        const [rows] = await pool.query(sql,req.params.id)
-        if(rows.length<=0){
-            return res.status(404).json({message: "venta not found"})
-        }
-        res.json(rows)
-    }catch(error){
-        console.error(error);
-        return res.status(500).json({message: "Ocurrió un error en el servidor"})
-    }
-}
 
-export const addVenta= async (req,res)=> {
-    try {
-        const sql = "INSERT INTO ventas (moto_id, cliente_id, fecha_venta, precio)VALUES (?, ?, ?, ?)"
-        const {moto_id, cliente_id, fecha_venta, precio} = req.body
-        const [rows] = await pool.query(sql,[moto_id, cliente_id,format(fecha_venta,'yyyy-MM-dd HH:mm:ss'),precio])
-        res.status(201).json({moto_id, cliente_id, fecha_venta, precio})
-    } catch (error) {
-       return res.status(500).json(error)
-    }
-}
-*/
 
 export const getVenta = async (req, res) => {
   try {
@@ -121,7 +96,7 @@ export const addVenta = async (req, res) => {
             [moto_id]
         );
 
-        // Si todo fue bien, confirmamos la transacción
+        
         await connection.commit();
 
         res.status(201).json({ 
