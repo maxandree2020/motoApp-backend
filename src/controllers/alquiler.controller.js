@@ -1,76 +1,102 @@
-import {pool} from '../db.js'
-import {format} from 'date-fns'
+import { pool } from '../db.js';
+import { format } from 'date-fns';
 
+/**
+ * Función auxiliar para formatear fechas
+ */
+const formatDate = (date) => format(date, 'yyyy-MM-dd HH:mm:ss');
 
-export const getAlquileres = async(req,res)=> {
-    try{
-        const sql =  "select*from alquileres"
-        const [rows] = await pool.query(sql)
-        res.json(rows)
-    }catch(error){
-        return res.status(500).json(error)
-    }
-}
-
-export const getAlquiler = async(req,res)=> {
-    try{
-        const sql =  "select*from alquileres where id=?"
-        const [rows] = await pool.query(sql,req.params.id)
-        if(rows.length<=0){return res.status(400).json({message: "alquiler not found"})}
-        res.json(rows)
-    }catch(error){
-        return res.status(500).json(error)
-    }
-}
-
-export const addAlquiler = async (req,res)=> {
+/**
+ * GET /alquileres
+ */
+export const getAlquileres = async (req, res) => {
     try {
-        const sql = "INSERT INTO alquileres (moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total)VALUES (?, ?, ?, ?, ?)"
-        const {moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total} = req.body
-         await pool.query(sql,[moto_id, cliente_id,format(fecha_inicio,'yyyy-MM-dd HH:mm:ss'),format(fecha_fin,'yyyy-MM-dd HH:mm:ss'), precio_total])
-        res.status(201).json({moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total})
-    
-    
+        const [rows] = await pool.query("SELECT * FROM alquileres");
+        res.json(rows);
     } catch (error) {
-       return res.status(500).json(error)
+        console.error(error);
+        res.status(500).json({ message: "Error interno del servidor" });
     }
-}
+};
 
-
-export const updateAlquiler = async (req,res)=>{
+/**
+ * GET /alquileres/:id
+ */
+export const getAlquiler = async (req, res) => {
     try {
-        const sql = "update alquileres set moto_id=?, cliente_id=?, fecha_inicio=?, fecha_fin=?, precio_total=?  where id=?"
-        const {moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total} = req.body; 
-        
-        const ini =format(fecha_inicio,'yyyy-MM-dd HH:mm:ss')
-        const fin =format(fecha_fin,'yyyy-MM-dd HH:mm:ss')   
-
-        const [result] = await pool.query(sql,[moto_id, cliente_id,ini,fin,precio_total,req.params.id]) 
-        if(result.affectedRows===0){
-            return res.status(400).json({message:'alquiler no encontrada'})
+        const [rows] = await pool.query("SELECT * FROM alquileres WHERE id = ?", [req.params.id]);
+        if (!rows.length) {
+            return res.status(404).json({ message: "Alquiler no encontrado" });
         }
-        const [rows] = await pool.query("select*from alquileres where id=?",req.params.id)
-        res.json(rows)
-        
+        res.json(rows[0]);
     } catch (error) {
-        return res.status(500).json(error)
+        console.error(error);
+        res.status(500).json({ message: "Error interno del servidor" });
     }
-} 
+};
 
-export const deleteAlquiler = async (req,res)=>{ 
+/**
+ * POST /alquileres
+ */
+export const addAlquiler = async (req, res) => {
     try {
-        const sql= "delete from alquileres where id=?"
-        const [rows] = await pool.query(sql,req.params.id)
-        
-        if(rows.affectedRows <= 0){
-            return res.status(404).json({message:"alquiler not found"})
-        }
-        res.sendStatus(204)
+        const { moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total } = req.body;
+        const [result] = await pool.query(
+            `INSERT INTO alquileres (moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total)
+             VALUES (?, ?, ?, ?, ?)`,
+            [moto_id, cliente_id, formatDate(fecha_inicio), formatDate(fecha_fin), precio_total]
+        );
+        res.status(201).json({ id: result.insertId, moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total });
     } catch (error) {
-        return res.status(500).json(error)        
+        console.error(error);
+        res.status(500).json({ message: "Error interno del servidor" });
     }
-}
+};
 
+/**
+ * PUT /alquileres/:id
+ */
+export const updateAlquiler = async (req, res) => {
+    try {
+        const { moto_id, cliente_id, fecha_inicio, fecha_fin, precio_total } = req.body;
+        const [result] = await pool.query(
+            `UPDATE alquileres
+             SET moto_id = ?, cliente_id = ?, fecha_inicio = ?, fecha_fin = ?, precio_total = ?
+             WHERE id = ?`,
+            [moto_id, cliente_id, formatDate(fecha_inicio), formatDate(fecha_fin), precio_total, req.params.id]
+        );
+
+        if (!result.affectedRows) {
+            return res.status(404).json({ message: "Alquiler no encontrado" });
+        }
+
+        const [rows] = await pool.query("SELECT * FROM alquileres WHERE id = ?", [req.params.id]);
+        res.json(rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+/**
+ * DELETE /alquileres/:id
+ */
+export const deleteAlquiler = async (req, res) => {
+    try {
+        const [result] = await pool.query("DELETE FROM alquileres WHERE id = ?", [req.params.id]);
+        if (!result.affectedRows) {
+            return res.status(404).json({ message: "Alquiler no encontrado" });
+        }
+        res.sendStatus(204);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
+
+/**
+ * GET /alquileres/:id/factura
+ */
 export const getFacturaAlquiler = async (req, res) => {
     try {
         const sql = `
@@ -83,28 +109,22 @@ export const getFacturaAlquiler = async (req, res) => {
                 a.precio_total,
                 m.nombre AS moto_alquilada,
                 m.precio AS precio_dia
-            FROM
-                alquileres a
-            INNER JOIN
-                clientes c ON a.cliente_id = c.id
-            INNER JOIN
-                motos m ON a.moto_id = m.id
-            WHERE
-                a.id = ?;
+            FROM alquileres a
+            INNER JOIN clientes c ON a.cliente_id = c.id
+            INNER JOIN motos m ON a.moto_id = m.id
+            WHERE a.id = ?;
         `;
         const [rows] = await pool.query(sql, [req.params.id]);
 
-        if (rows.length <= 0) {
-            return res.status(404).json({ message: "Factura not found" });
+        if (!rows.length) {
+            return res.status(404).json({ message: "Factura no encontrada" });
         }
 
         res.json(rows[0]);
     } catch (error) {
-        
-        if (error.code === 'ECONNREFUSED') {
-        return res.status(503).json({ message: "Servicio de base de datos no disponible" });
-    }
-    return res.status(500).json({ message: "Error interno del servidor" });
-    
+        console.error(error);
+        const status = error.code === 'ECONNREFUSED' ? 503 : 500;
+        const msg = error.code === 'ECONNREFUSED' ? "Servicio de base de datos no disponible" : "Error interno del servidor";
+        res.status(status).json({ message: msg });
     }
 };

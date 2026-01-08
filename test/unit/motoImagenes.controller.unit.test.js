@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Mock DB
 vi.mock('../../src/db.js', () => ({
@@ -14,8 +16,13 @@ import {
   eliminarImagen
 } from '../../src/controllers/motoImagenesController.js';
 
-describe('Unit: motoImagenes.controller', () => {
+// ================= Helper para mocks =================
+const mockQuery = (resolve = [], reject = null) => {
+  if (reject) pool.query.mockRejectedValueOnce(reject);
+  else pool.query.mockResolvedValueOnce([resolve]);
+};
 
+describe('Unit: motoImagenes.controller (mejorado)', () => {
   let req, res;
 
   beforeEach(() => {
@@ -26,9 +33,13 @@ describe('Unit: motoImagenes.controller', () => {
 
     res = {
       status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-      sendStatus: vi.fn()
+      json: vi.fn().mockReturnThis(),
+      sendStatus: vi.fn().mockReturnThis()
     };
+
+    // Mocks para filesystem (Multer storage)
+    vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+    vi.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
 
     vi.clearAllMocks();
   });
@@ -38,7 +49,6 @@ describe('Unit: motoImagenes.controller', () => {
   // =========================
   it('subirImagenes → 400 si no se envían imágenes', async () => {
     req.files = [];
-
     await subirImagenes(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
@@ -47,14 +57,23 @@ describe('Unit: motoImagenes.controller', () => {
     });
   });
 
-  it('subirImagenes → guarda imágenes y retorna 201', async () => {
+  it('subirImagenes → 400 si req.files undefined', async () => {
+    req.files = undefined;
+    await subirImagenes(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'No se subieron imágenes'
+    });
+  });
+
+  it('subirImagenes → guarda imágenes correctamente', async () => {
     req.files = [
       { filename: 'img1.jpg' },
       { filename: 'img2.png' }
     ];
 
-    pool.query.mockResolvedValue([{}]);
-
+    mockQuery({}); // Simula INSERT exitoso
     await subirImagenes(req, res);
 
     expect(pool.query).toHaveBeenCalledOnce();
@@ -68,22 +87,23 @@ describe('Unit: motoImagenes.controller', () => {
     });
   });
 
-  it('subirImagenes → 500 si ocurre error', async () => {
+  it('subirImagenes → 500 si ocurre error en DB', async () => {
     req.files = [{ filename: 'img.jpg' }];
-    pool.query.mockRejectedValue(new Error('DB error'));
+    mockQuery([], new Error('DB error'));
 
     await subirImagenes(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: 'DB error' })
+    );
   });
 
   // =========================
   // obtenerImagenes
   // =========================
   it('obtenerImagenes → devuelve imágenes de la moto', async () => {
-    pool.query.mockResolvedValue([[
-      { id: 1, imagen_url: '/uploads/motos/a.jpg' }
-    ]]);
+    mockQuery([{ id: 1, imagen_url: '/uploads/motos/a.jpg' }]);
 
     await obtenerImagenes(req, res);
 
@@ -93,7 +113,7 @@ describe('Unit: motoImagenes.controller', () => {
   });
 
   it('obtenerImagenes → 404 si no hay imágenes', async () => {
-    pool.query.mockResolvedValue([[]]);
+    mockQuery([]);
 
     await obtenerImagenes(req, res);
 
@@ -103,12 +123,15 @@ describe('Unit: motoImagenes.controller', () => {
     });
   });
 
-  it('obtenerImagenes → 500 en error', async () => {
-    pool.query.mockRejectedValue(new Error('DB error'));
+  it('obtenerImagenes → 500 si hay error DB', async () => {
+    mockQuery([], new Error('DB error'));
 
     await obtenerImagenes(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: 'DB error' })
+    );
   });
 
   // =========================
@@ -116,7 +139,7 @@ describe('Unit: motoImagenes.controller', () => {
   // =========================
   it('eliminarImagen → elimina imagen y retorna 204', async () => {
     req.params.id = 10;
-    pool.query.mockResolvedValue([{ affectedRows: 1 }]);
+    mockQuery({ affectedRows: 1 });
 
     await eliminarImagen(req, res);
 
@@ -124,7 +147,7 @@ describe('Unit: motoImagenes.controller', () => {
   });
 
   it('eliminarImagen → 404 si imagen no existe', async () => {
-    pool.query.mockResolvedValue([{ affectedRows: 0 }]);
+    mockQuery({ affectedRows: 0 });
 
     await eliminarImagen(req, res);
 
@@ -134,12 +157,14 @@ describe('Unit: motoImagenes.controller', () => {
     });
   });
 
-  it('eliminarImagen → 500 si hay error', async () => {
-    pool.query.mockRejectedValue(new Error('DB error'));
+  it('eliminarImagen → 500 si hay error DB', async () => {
+    mockQuery([], new Error('DB error'));
 
     await eliminarImagen(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: 'DB error' })
+    );
   });
-
 });
