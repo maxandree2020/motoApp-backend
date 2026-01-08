@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 
-// 🔥 Mock del middleware de autenticación
+// Mock del middleware de autenticación
 vi.mock('../../src/middlewares/authMiddleware.js', () => ({
   verifyToken: (req, res, next) => next()
 }));

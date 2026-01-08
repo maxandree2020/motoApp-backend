@@ -58,9 +58,9 @@ describe('Unit: verifyToken middleware', () => {
 
     verifyToken(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      message: 'Token expirado o inválido'
+      message: 'Token inválido o malformado'
     });
     expect(next).not.toHaveBeenCalled();
   });
