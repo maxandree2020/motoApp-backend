@@ -1,10 +1,12 @@
-name: SonarCloud Analysis
+name: SonarCloud
 
 on:
   push:
     branches:
       - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   sonarcloud:
@@ -19,14 +21,15 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+        working-directory: BACKEND
         run: npm install
-        working-directory: backend
 
       - name: Run tests with coverage
-        run: npm run test:coverage
-        working-directory: backend
+        working-directory: BACKEND
+        run: npm run test -- --coverage
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        working-directory: BACKEND
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
